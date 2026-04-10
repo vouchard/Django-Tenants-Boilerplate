@@ -1,1 +1,1 @@
-test
+this is a personal project for django tenants boilerplate
