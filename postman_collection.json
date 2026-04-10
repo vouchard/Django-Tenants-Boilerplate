@@ -1,0 +1,565 @@
+{
+  "info": {
+    "name": "Django Multi-Tenant API",
+    "description": "Complete API collection for Django Multi-Tenant SaaS Boilerplate with JWT authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "tenant_domain",
+      "value": "acme.localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public Endpoints",
+      "item": [
+        {
+          "name": "Register New Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('tenant_domain', response.domain + ':8000');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_name\": \"Acme Corporation\",\n  \"schema_name\": \"acme\",\n  \"domain\": \"acme.localhost\",\n  \"admin_email\": \"admin@acme.com\",\n  \"admin_password\": \"securepass123\",\n  \"admin_first_name\": \"John\",\n  \"admin_last_name\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tenants/register/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tenants", "register", ""]
+            },
+            "description": "Register a new tenant with admin user"
+          },
+          "response": []
+        },
+        {
+          "name": "API Documentation (Swagger)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "docs", ""]
+            },
+            "description": "Access Swagger UI for API documentation"
+          },
+          "response": []
+        }
+      ],
+      "description": "Public endpoints that don't require authentication"
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (Get JWT Tokens)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin@acme.com\",\n  \"password\": \"securepass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "auth", "login", ""]
+            },
+            "description": "Login with username and password to get JWT tokens"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/auth/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "auth", "refresh", ""]
+            },
+            "description": "Refresh access token using refresh token"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for JWT token management"
+    },
+    {
+      "name": "Tenant Management",
+      "item": [
+        {
+          "name": "Get Current Tenant Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tenants/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tenants", "me", ""]
+            },
+            "description": "Get information about the current tenant"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tenant-specific endpoints"
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me", ""]
+            },
+            "description": "Get authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Current User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me", ""]
+            },
+            "description": "Update current user's profile information"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"securepass123\",\n  \"new_password\": \"newsecurepass456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/me/change-password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me", "change-password", ""]
+            },
+            "description": "Change current user's password"
+          },
+          "response": []
+        },
+        {
+          "name": "List All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", ""]
+            },
+            "description": "List all users in the tenant (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"jane@acme.com\",\n  \"email\": \"jane@acme.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", ""]
+            },
+            "description": "Create a new user in the tenant (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "1", ""]
+            },
+            "description": "Get specific user by ID (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/2/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "2", ""]
+            },
+            "description": "Update user information (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/2/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "2", ""]
+            },
+            "description": "Delete a user (Admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Items (Example)",
+      "item": [
+        {
+          "name": "List All Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/core/items/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "core", "items", ""]
+            },
+            "description": "List all items in the current tenant"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"First Item\",\n  \"description\": \"This is a test item to demonstrate tenant isolation\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/core/items/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "core", "items", ""]
+            },
+            "description": "Create a new item in the current tenant"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Item by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/core/items/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "core", "items", "1", ""]
+            },
+            "description": "Get a specific item by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Item Name\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/core/items/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "core", "items", "1", ""]
+            },
+            "description": "Update an existing item"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Host",
+                "value": "{{tenant_domain}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/core/items/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "core", "items", "1", ""]
+            },
+            "description": "Delete an item"
+          },
+          "response": []
+        }
+      ],
+      "description": "Example CRUD endpoints for Items (demonstrates tenant isolation)"
+    }
+  ]
+}
